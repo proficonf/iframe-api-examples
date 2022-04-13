@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Getting Started Tutorial - Basic Commands</title>
+  </head>
+  <body>
+    <div>
+        <button id="enableCamera">Enable Camera</button>
+        <button id="disableCamera">Disable Camera</button>
+
+        <button id="startRecording">Start Recording</button>
+        <button id="stopRecording">Stop Recording</button>
+    </div>
+
+    <script src="https://unpkg.com/@proficonf/iframe-api"></script>
+    <script>
+        const api = Proficonf.create({
+            meetingUrl: '{YOUR_MEETING_URL}',
+            user: {
+                name: 'Tester'
+            }
+        });
+
+        document.querySelector('#enableCamera').addEventListener('click', () => {
+            api.enableCamera()
+                .then(() => console.log('Everything OK!'))
+                .catch((error) => alert(`Camera error: ${error.message}`));
+        });
+
+        document.querySelector('#disableCamera').addEventListener('click', () => {
+            api.disableCamera();
+        });
+
+        document.querySelector('#startRecording').addEventListener('click', () => {
+            api.startRecording();
+        });
+
+        document.querySelector('#stopRecording').addEventListener('click', () => {
+            api.stopRecording();
+        });
+
+        api.join();
+    </script>
+  </body>
+</html>

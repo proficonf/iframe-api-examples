@@ -1,0 +1,630 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="./css/styles.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link rel="apple-touch-icon" sizes="180x180" href="https://proficonf.com/wp-content/themes/proficonf-theme/assets/public/img/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="https://proficonf.com/wp-content/themes/proficonf-theme/assets/public/img/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="https://proficonf.com/wp-content/themes/proficonf-theme/assets/public/img/favicon/favicon-16x16.png">
+    <title>Proficonf Iframe API Demo</title>
+  </head>
+  <body class="bg-light">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/@proficonf/iframe-api"></script>
+    <script>
+      const uiConfig = {
+        customPrimaryColor: '#563d7c',
+        removeElements: [ 'logo' ]
+      };
+
+      function setScreenLayout(element) {
+        room.setScreenLayout(element.value);
+      }
+
+      function toggleUiElement(uiElementName, isChecked) {
+        if (isChecked) {
+          uiConfig.removeElements.splice(
+            uiConfig.removeElements.indexOf(uiElementName), 1
+          );
+        } else {
+          uiConfig.removeElements.push(uiElementName);
+        }
+        room.updateUIConfig(uiConfig);
+      }
+
+      function toggleTopbar(element) {
+        document.querySelector('[name=cameraControl]').disabled = !element.checked;
+        document.querySelector('[name=microphoneControl]').disabled = !element.checked;
+        document.querySelector('[name=leaveButton]').disabled = !element.checked;
+        document.querySelector('[name=meetingName]').disabled = !element.checked;
+        document.querySelector('[name=roomLocker]').disabled = !element.checked;
+        document.querySelector('[name=timer]').disabled = !element.checked;
+        document.querySelector('[name=qualityIndicator]').disabled = !element.checked;
+        document.querySelector('[name=recordingControl]').disabled = !element.checked;
+        document.querySelector('[name=streamingControl]').disabled = !element.checked;
+        document.querySelector('[name=inviteButton]').disabled = !element.checked;
+        document.querySelector('[name=displayModeButton]').disabled = !element.checked;
+        document.querySelector('[name=settingsButton]').disabled = !element.checked;
+        document.querySelector('[name=logo]').disabled = !element.checked;
+        toggleUiElement('topbar', element.checked);
+      }
+
+      function toggleSidebar(element) {
+        document.querySelector('[name=chatButton]').disabled = !element.checked;
+        document.querySelector('[name=participantsButton]').disabled = !element.checked;
+        document.querySelector('[name=sharingButton]').disabled = !element.checked;
+        document.querySelector('[name=sharedFilesButton]').disabled = !element.checked;
+        toggleUiElement('sidebar', element.checked);
+      }
+
+      function toggleUIProperty(element) {
+        if (element.disabled) return;
+        const name = element.getAttribute('name');
+        toggleUiElement(name, element.checked);
+      }
+
+      function primaryColorChanged(element) {
+        uiConfig.customPrimaryColor = element.value;
+        room.updateUIConfig(uiConfig);
+      }
+
+      function cameraSwitchChanged(element) {
+        element.checked
+          ? room.enableCamera()
+          : room.disableCamera();
+      }
+
+      function microphoneSwitchChanged(element) {
+        element.checked
+          ? room.enableMicrophone()
+          : room.disableMicrophone();
+      }
+
+      function screenSharingSwitchChanged(element) {
+        element.checked
+          ? room.startScreenSharing()
+          : room.stopScreenSharing();
+      }
+
+      function recordingSwitchChanged(element) {
+        element.disabled = true;
+        if (element.checked) {
+          room.startRecording();
+        } else {
+          room.stopRecording();
+        }
+      }
+
+      function showLogoChanged(element) {
+        const logoInput = document.getElementById('logoUrlInput');
+        document.getElementById('applyLogoButton').disabled = !element.checked;
+        if (element.checked) {
+          logoInput.removeAttribute('disabled');
+          logoInput.setAttribute('placeholder', 'https://placehold.jp/003366/120x50.jpg?text=Your%20logo');
+        } else {
+          logoInput.setAttribute('disabled', 'disabled');
+        }
+        toggleUiElement('logo', element.checked);
+      }
+
+      function applyLogoUrl(element) {
+        if (element.disabled) return;
+        const logoInput = document.getElementById('logoUrlInput');
+        uiConfig.customLogoSrc = logoInput.value;
+        //  ? logoInput.value
+        //  : 'https://placehold.jp/003366/120x50.jpg?text=Your%20logo';
+        room.updateUIConfig(uiConfig);
+      }
+
+      function logEvent(event) {
+        const logElement = document.getElementById('eventLog');
+        logElement.prepend(JSON.stringify(event) + '\n');
+      }
+
+      function initializeRoom(meetingUrl, token) {
+        window.room = Proficonf.create({
+          meetingUrl,
+          rootElement: document.querySelector('div#iframeWrapper'),
+          user: { token },
+          iframe: {
+            width: '100%',
+            height: '450px',
+            style: {
+              border: '1px solid #495057',
+              backgroundColor: '#6c757d'
+            }
+          },
+          ui: uiConfig
+        });
+
+        room.on('*', (event) => {
+          logEvent(event);
+        });
+
+        room.on('trackAdded', (event) => {
+          if (!event.isLocal) return;
+          let checkbox, icon;
+          if (event.mediaType === 'camera') {
+            checkbox = document.querySelector('#cameraSwitch');
+            icon = document.querySelector('label[for=cameraSwitch] .material-icons');
+            icon.innerText = 'videocam';
+          } else if (event.mediaType === 'microphone') {
+            checkbox = document.querySelector('#microphoneSwitch');
+            icon = document.querySelector('label[for=microphoneSwitch] .material-icons');
+            icon.innerText = 'mic';
+          } else if (event.mediaType === 'screen') {
+            checkbox = document.querySelector('#screenSharingSwitch');
+            icon = document.querySelector('label[for=screenSharingSwitch] .material-icons');
+            icon.innerText = 'screen_share';
+          }
+          checkbox.checked = true;
+          icon.classList.remove('text-muted');
+          icon.classList.add('text-success');
+        });
+
+        room.on('trackRemoved', (event) => {
+          if (!event.isLocal) return;
+          let checkbox, icon;
+          if (event.mediaType === 'camera') {
+            checkbox = document.querySelector('#cameraSwitch');
+            icon = document.querySelector('label[for=cameraSwitch] .material-icons');
+            icon.innerText = 'videocam_off';
+          } else if (event.mediaType === 'microphone') {
+            checkbox = document.querySelector('#microphoneSwitch');
+            icon = document.querySelector('label[for=microphoneSwitch] .material-icons');
+            icon.innerText = 'mic_off';
+          } else if (event.mediaType === 'screen') {
+            checkbox = document.querySelector('#screenSharingSwitch');
+            icon = document.querySelector('label[for=screenSharingSwitch] .material-icons');
+            icon.innerText = 'stop_screen_share';
+          }
+          checkbox.checked = false;
+          icon.classList.remove('text-success');
+          icon.classList.add('text-muted');
+        });
+
+        room.on('getUserMediaPermissionDenied', (event) => {
+          let checkbox;
+          if (event.device === 'camera') {
+            checkbox = document.querySelector('#cameraSwitch');
+          } else if (event.device === 'microphone') {
+            checkbox = document.querySelector('#microphoneSwitch');
+          } else if (event.device === 'screen') {
+            checkbox = document.querySelector('#screenSharingSwitch');
+          }
+          checkbox.checked = false;
+        });
+
+        room.on('recordingStarted', () => {
+          const checkbox = document.querySelector('#recordingSwitch');
+          const icon = document.querySelector('label[for=recordingSwitch] .material-icons');
+          checkbox.checked = true;
+          checkbox.disabled = false;
+          icon.classList.remove('text-muted');
+          icon.classList.add('text-danger');
+        });
+
+        room.on('recordingStopped', () => {
+          const checkbox = document.querySelector('#recordingSwitch');
+          const icon = document.querySelector('label[for=recordingSwitch] .material-icons');
+          checkbox.checked = false;
+          checkbox.disabled = false;
+          icon.classList.remove('text-danger');
+          icon.classList.add('text-muted');
+        });
+
+        return room.join();
+      };
+
+      function execute(domain) {
+        const form = document.getElementById('form');
+        const apiKeyInput = document.getElementById('api-key-input');
+
+        apiKeyInput.focus();
+
+        form.addEventListener('submit', (event) => {
+          event.preventDefault();
+
+          const startButton = document.getElementById('start-button');
+          if (startButton.hasAttribute('disabled')) return;
+
+          if (apiKeyInput.value.length < 40) {
+            showApiKeyInputError('Please enter a valid API key');
+            return;
+          }
+
+          resetApiKeyInputError();
+
+          startButton.setAttribute('disabled', 'disabled');
+          startButton.querySelector('[role=text]').innerText = 'Starting';
+          startButton.querySelector('.material-icons').classList.add('visually-hidden');
+          startButton.querySelector('[role=status]').classList.remove('visually-hidden');
+
+          sendRestApiRequest({
+            apiKey: apiKeyInput.value,
+            url: `https://api.${domain}/v1/meetings`
+          }).then((meeting) => {
+            const joinUrlElement = document.getElementById('joinUrl');
+            const joinLink = `https://app.${domain}/j/${meeting.id}/`;
+            joinUrlElement.href = joinLink;
+            joinUrlElement.innerText = joinLink;
+
+            sendRestApiRequest({
+              apiKey: apiKeyInput.value,
+              url: `https://api.${domain}/v1//participant-tokens`,
+              requestBody: {
+                meetingId: meeting.id,
+                name: 'Demo Tester',
+                role: 'owner'
+              }
+            }).then((response) => {
+              initializeRoom(joinLink, response.token)
+                .then((payload) => console.log('Room successfully initiated', payload))
+                .catch((error) => console.error('Room initiflization error:', error));
+
+              document.querySelector('#start-page').classList.add('visually-hidden');
+              document.querySelector('#iframe-page').classList.remove('visually-hidden');
+            }).catch((error) => {
+              console.error('Error occurred while creating a participant token:', error);
+              showApiKeyInputError('Error occurred while creating a participant token. Please try again later.');
+              resetSumbitButtonState();
+            });
+
+          }).catch((error) => {
+            console.error('Error occurred while creating a meeting:', error);
+            showApiKeyInputError('Error occurred while creating a meeting. Please check your API key.');
+            resetSumbitButtonState();
+          });
+        });
+      };
+
+      document.addEventListener('DOMContentLoaded', () => {
+        execute('staging.proficonf.org');
+      });
+
+      function sendRestApiRequest({ apiKey, url, requestBody = {} }) {
+        return new Promise((resolve, reject) => {
+          const request = new XMLHttpRequest();
+          request.open('POST', url, true);
+          request.setRequestHeader('Accept', 'application/json');
+          request.setRequestHeader('Content-type', 'application/json');
+          request.setRequestHeader('X-API-KEY', apiKey);
+          request.onreadystatechange = () => {
+            if(request.readyState != 4) return;
+            if (request.status === 200) {
+              resolve(JSON.parse(request.responseText));
+            } else {
+              reject(request.responseText);
+            }
+          };
+
+          request.send(JSON.stringify(requestBody));
+        });
+      }
+
+      function showApiKeyInputError(errorMessage) {
+        document.getElementById('api-key-input').classList.add('is-invalid');
+
+        document.getElementById('api-key-input-hint').classList.add('visually-hidden');
+
+        const apiKeyInputError = document.getElementById('api-key-input-error');
+        apiKeyInputError.innerText = errorMessage;
+        apiKeyInputError.classList.remove('visually-hidden');
+      }
+
+      function resetSumbitButtonState() {
+        const startButton = document.getElementById('start-button');
+        startButton.removeAttribute('disabled');
+        startButton.querySelector('[role=text]').innerText = 'Start';
+        startButton.querySelector('.material-icons').classList.remove('visually-hidden');
+        startButton.querySelector('[role=status]').classList.add('visually-hidden');
+      }
+
+      function resetApiKeyInputError() {
+        document.getElementById('api-key-input').classList.remove('is-invalid');
+        document.getElementById('api-key-input-hint').classList.remove('visually-hidden');
+        document.getElementById('api-key-input-error').classList.add('visually-hidden');
+      }
+    </script>
+
+    <div id="start-page" class="container">
+      <div class="row">
+        <div class="col text-center">
+          <img class="d-block mx-auto" src="./img/logo.png" alt="Logo" width="140">
+          <h1 class="display-5 fw-bold">Proficonf Iframe API</h1>
+          <div class="col-lg-10 mx-auto mb-4">
+            <p class="lead mb-4">
+              Enhance your product with full-featured video chat.<br/>
+              Click "Start" to explore some of the features.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <form id="form" class="row">
+        <div class="col-lg-5 offset-lg-3 col-md-6 offset-md-2 col-sm-12">
+          <input type="text" class="form-control form-control-lg" id="api-key-input" placeholder="Enter your API key">
+          <div id="api-key-input-hint" class="form-text text-center">
+            <a href="https://proficonf.dev/docs/getting-started" target="_blank">How can I get an API key?</a>
+          </div>
+          <div id="api-key-input-error" class="invalid-feedback"></div>
+        </div>
+        <div class="col-lg-2 col-md-3 col-sm-12">
+          <button id="start-button" type="submit" class="btn btn-primary btn-lg px-4 gap-2">
+            <span role="text">Start</span>
+            <span class="material-icons">play_arrow</span>
+            <span class="spinner-border spinner-border-sm visually-hidden" role="status" aria-hidden="true"></span>
+          </button>
+        </div>
+      </form>
+
+      <div class="row mt-5">
+        <div class="col-md-6 col-sm-12">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title mb-3">Powerful meeting room</h5>
+              <p><span class="material-icons text-success">verified</span> Up to 250 participants at a time</p>
+              <p><span class="material-icons text-success">verified</span> Full management of the participants</p>
+              <p><span class="material-icons text-success">verified</span> Cloud recording, Auto recording</p>
+              <p><span class="material-icons text-success">verified</span> Live streaming, Multi-streaming</p>
+              <p><span class="material-icons text-success">verified</span> Share everything (Screen, Files, Whiteboard, YouTube, etc)</p>
+              <p><span class="material-icons text-success">verified</span> REST API & Webhooks</p>
+              <p><span class="material-icons text-success">verified</span> Easy to embed via iframe</p>
+              <p><span class="material-icons text-success">verified</span> Fully customisable UI</p>
+              <p class="mb-4"><span class="material-icons text-success">verified</span> Branding</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6 col-sm-12">
+          <div class="card" style="background: #282c34">
+            <div class="card-body">
+              <h5 class="card-title text-light mb-3">Embed with a few lines of code</h5>
+              <code id="htmlViewer" style="color:rgb(171, 178, 191); font-weight:400;background-color:rgb(40, 44, 52);background:rgb(40, 44, 52);display:block;"><span style="color:rgb(198, 120, 221); font-weight:400;">const</span> room = <span style="color:rgb(230, 192, 123); font-weight:400;">Proficonf</span>.create({<br/>
+              &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:rgb(209, 154, 102); font-weight:400;">meetingUrl</span>: <span style="color:rgb(152, 195, 121); font-weight:400;">&#x27;https://proficonf.com/j/5d0KdZPmiks/&#x27;</span>,<br/>
+              &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:rgb(209, 154, 102); font-weight:400;">user</span>: {<br/>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:rgb(209, 154, 102); font-weight:400;">name</span>: <span style="color:rgb(152, 195, 121); font-weight:400;">&#x27;Demo Tester&#x27;</span>,<br/>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:rgb(209, 154, 102); font-weight:400;">locale</span>: <span style="color:rgb(152, 195, 121); font-weight:400;">&#x27;en&#x27;</span><br/>
+              &nbsp;&nbsp;&nbsp;&nbsp;}<br/>
+              });<br/><br/>
+
+              <span style="color:rgb(92, 99, 112); font-weight:400;">// Subscribe to events</span><br/>
+              room.on(<span style="color:rgb(152, 195, 121); font-weight:400;">&#x27;participantJoined&#x27;</span>, <span style="color:rgb(171, 178, 191); font-weight:400;">(<span style="color:rgb(171, 178, 191); font-weight:400;">event</span>) =&gt;</span> {<br/>
+              &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:rgb(230, 192, 123); font-weight:400;">console</span>.log(<span style="color:rgb(152, 195, 121); font-weight:400;">&#x27;Participant joined&#x27;</span>, event.participant.name);<br/>
+              });<br/><br/>
+
+              <span style="color:rgb(92, 99, 112); font-weight:400;">// Control everything</span><br/>
+              <span style="color:rgb(198, 120, 221); font-weight:400;">await</span> room.join();<br/>
+              <span style="color:rgb(198, 120, 221); font-weight:400;">await</span> room.enableCamera();<br/>
+              <span style="color:rgb(198, 120, 221); font-weight:400;">await</span> room.enableMicrophone();<br/>
+              <span style="color:rgb(198, 120, 221); font-weight:400;">await</span> room.startScreenSharing();<br/>
+              </code>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="iframe-page" class="container visually-hidden">
+      <div class="row mt-3">
+        <div class="col-7">
+          <div id="iframeWrapper"></div>
+
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Event log</h5>
+              <pre id="eventLog" class="overflow-auto" style="height: 450px"></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-5">
+          <div class="card mb-3">
+            <div class="alert alert-primary" role="alert">
+              To join this meeting in a browser use the following link:<br/>
+              <a id="joinUrl" href="http://app.staging.proficonf.org" target="_blank">http://app.staging.proficonf.org</a>
+            </div>
+
+            <div class="card-body">
+              <h5 class="card-title">Controls</h5>
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" id="cameraSwitch" onchange="cameraSwitchChanged(this)">
+                <label class="form-check-label" for="cameraSwitch">
+                  <span class="material-icons text-muted">videocam_off</span>
+                  Camera
+                </label>
+              </div>
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" id="microphoneSwitch" onchange="microphoneSwitchChanged(this)">
+                <label class="form-check-label" for="microphoneSwitch">
+                  <span class="material-icons text-muted">mic_off</span>
+                  Microphone
+                </label>
+              </div>
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" id="screenSharingSwitch" onchange="screenSharingSwitchChanged(this)">
+                <label class="form-check-label" for="screenSharingSwitch">
+                  <span class="material-icons text-muted">stop_screen_share</span>
+                  Screen sharing
+                </label>
+              </div>
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" id="recordingSwitch" onchange="recordingSwitchChanged(this)">
+                <label class="form-check-label" for="recordingSwitch">
+                  <span class="material-icons text-muted">fiber_manual_record</span>
+                  Recording
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="card mb-3">
+            <div class="card-body">
+              <h5 class="card-title">Branding</h5>
+
+              <div class="mb-3">
+                <label for="primaryColor" class="col-sm-3 col-form-label">Primary color</label>
+                <input type="color" class="form-control form-control-color form-control-sm" id="primaryColor" value="#563d7c" title="Choose your color" onchange="primaryColorChanged(this)">
+              </div>
+
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" name="logo" id="showLogoSwitch" onchange="showLogoChanged(this)">
+                <label class="form-check-label" for="showLogoSwitch">
+                  Show logo
+                </label>
+              </div>
+
+              <div class="input-group input-group-sm">
+                <input id="logoUrlInput" type="text" class="form-control" placeholder="Logo image link" disabled>
+                <button class="btn btn-primary" type="button" id="applyLogoButton" onclick="applyLogoUrl(this)" disabled>Apply logo</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card mb-3">
+            <div class="card-body">
+              <h5 class="card-title">Interface</h5>
+              <div class="mb-3">
+                <label for="displayMode" class="col-form-label">Screen layout</label>
+                <select id="displayMode" class="form-select" onchange="setScreenLayout(this)">
+                  <option value="tiled">Tiled</option>
+                  <option value="activeSpeaker">Active speaker</option>
+                </select>
+              </div>
+
+              <div class="row">
+
+                <div class="col-sm-6">
+
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="disableTopBar" id="disableTopBar" onchange="toggleTopbar(this)" checked>
+                    <label class="form-check-label" for="disableTopBar">
+                      <b>Top menu bar</b>
+                    </label>
+                  </div>
+
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="disableMeetingName" id="disableMeetingName" onchange="toggleUIProperty(this)" checked>
+                    <label class="form-check-label" for="disableMeetingName">
+                      Meeting title
+                    </label>
+                  </div>
+
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="disableRoomLocker" id="disableRoomLocker" onchange="toggleUIProperty(this)" checked>
+                    <label class="form-check-label" for="disableRoomLocker">
+                      Lock meeting button
+                    </label>
+                  </div>
+
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="disableCameraControl" id="disableCameraControl" onchange="toggleUIProperty(this)" checked>
+                    <label class="form-check-label" for="disableCameraControl">
+                      Camera button
+                    </label>
+                  </div>
+
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="disableMicrophoneControl" id="disableMicrophoneControl" onchange="toggleUIProperty(this)" checked>
+                    <label class="form-check-label" for="disableMicrophoneControl">
+                      Microphone button
+                    </label>
+                  </div>
+
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="disableLeaveButton" id="disableLeaveButton" onchange="toggleUIProperty(this)" checked>
+                    <label class="form-check-label" for="disableLeaveButton">
+                      Leave button
+                    </label>
+                  </div>
+
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="disableTimer" id="disableTimer" onchange="toggleUIProperty(this)" checked>
+                    <label class="form-check-label" for="disableTimer">
+                      Timer
+                    </label>
+                  </div>
+
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="disableQualityIndicator" id="disableQualityIndicator" onchange="toggleUIProperty(this)" checked>
+                    <label class="form-check-label" for="disableQualityIndicator">
+                      Signal quality indicator
+                    </label>
+                  </div>
+
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="disableInviteButton" id="disableInviteButton" onchange="toggleUIProperty(this)" checked>
+                    <label class="form-check-label" for="disableInviteButton">
+                      Invite button
+                    </label>
+                  </div>
+
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="disableRecordingControl" id="disableRecordingControl" onchange="toggleUIProperty(this)" checked>
+                    <label class="form-check-label" for="disableRecordingControl">
+                      Recording button
+                    </label>
+                  </div>
+
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="disableStreamingControl" id="disableStreamingControl" onchange="toggleUIProperty(this)" checked>
+                    <label class="form-check-label" for="disableStreamingControl">
+                      Streaming button
+                    </label>
+                  </div>
+
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="disableDisplayModeButton" id="disableDisplayModeButton" onchange="toggleUIProperty(this)" checked>
+                    <label class="form-check-label" for="disableDisplayModeButton">
+                      Display mode button
+                    </label>
+                  </div>
+
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="disableConfigButton" id="disableConfigButton" onchange="toggleUIProperty(this)" checked>
+                    <label class="form-check-label" for="disableConfigButton">
+                      Settings button
+                    </label>
+                  </div>
+                </div>
+
+                <div class="col-sm-6">
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="disableLeftBar" id="disableLeftBar" onchange="toggleLeftbar(this)" checked>
+                    <label class="form-check-label" for="disableLeftBar">
+                      <b>Left menu bar</b>
+                    </label>
+                  </div>
+
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="disableParticipantsListButton" id="disableParticipantsListButton" onchange="toggleUIProperty(this)" checked>
+                    <label class="form-check-label" for="disableParticipantsListButton">
+                      Participants button
+                    </label>
+                  </div>
+
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="disableChatbutton" id="disableChatbutton" onchange="toggleUIProperty(this)" checked>
+                    <label class="form-check-label" for="disableChatbutton">
+                      Chat button
+                    </label>
+                  </div>
+
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="disableSharingCenterButton" id="disableSharingCenterButton" onchange="toggleUIProperty(this)" checked>
+                    <label class="form-check-label" for="disableSharingCenterButton">
+                      Sharing button
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -369,11 +369,11 @@
               <p><span class="material-icons text-success">verified</span> Up to 250 participants at a time</p>
               <p><span class="material-icons text-success">verified</span> Full management of the participants</p>
               <p><span class="material-icons text-success">verified</span> Cloud recording, Auto recording</p>
-              <p><span class="material-icons text-success">verified</span> Live streaming, Multi-streaming</p>
+              <p><span class="material-icons text-success">verified</span> Live streaming, Multistreaming</p>
               <p><span class="material-icons text-success">verified</span> Share everything (Screen, Files, Whiteboard, YouTube, etc)</p>
               <p><span class="material-icons text-success">verified</span> REST API & Webhooks</p>
               <p><span class="material-icons text-success">verified</span> Easy to embed via iframe</p>
-              <p><span class="material-icons text-success">verified</span> Fully customisable UI</p>
+              <p><span class="material-icons text-success">verified</span> Fully customizable UI</p>
               <p class="mb-4"><span class="material-icons text-success">verified</span> Branding</p>
             </div>
           </div>
@@ -487,11 +487,11 @@
           <div class="card mb-3">
             <div class="card-body">
               <h5 class="card-title">Interface</h5>
-              <div class="mb-3">
-                <label for="displayMode" class="col-form-label">Screen layout</label>
-                <select id="displayMode" class="form-select" onchange="setScreenLayout(this)">
-                  <option value="tiled">Tiled</option>
+              <div class="mb-3 visually-hidden">
+                <label for="displayMode" class="col-form-label">Display mode</label>
+                <select id="displayMode" class="form-select" onchange="displayModeChanged(this)">
                   <option value="activeSpeaker">Active speaker</option>
+                  <option value="tiled">Tiled</option>
                 </select>
               </div>
 
@@ -500,92 +500,92 @@
                 <div class="col-sm-6">
 
                   <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" name="disableTopBar" id="disableTopBar" onchange="toggleTopbar(this)" checked>
-                    <label class="form-check-label" for="disableTopBar">
+                    <input class="form-check-input" type="checkbox" name="topbar" id="topbar" onchange="toggleTopbar(this)" checked>
+                    <label class="form-check-label" for="topbar">
                       <b>Top menu bar</b>
                     </label>
                   </div>
 
                   <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" name="disableMeetingName" id="disableMeetingName" onchange="toggleUIProperty(this)" checked>
-                    <label class="form-check-label" for="disableMeetingName">
+                    <input class="form-check-input" type="checkbox" name="meetingName" id="meetingName" onchange="toggleUIProperty(this)" checked>
+                    <label class="form-check-label" for="meetingName">
                       Meeting title
                     </label>
                   </div>
 
                   <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" name="disableRoomLocker" id="disableRoomLocker" onchange="toggleUIProperty(this)" checked>
-                    <label class="form-check-label" for="disableRoomLocker">
+                    <input class="form-check-input" type="checkbox" name="roomLocker" id="roomLocker" onchange="toggleUIProperty(this)" checked>
+                    <label class="form-check-label" for="roomLocker">
                       Lock meeting button
                     </label>
                   </div>
 
                   <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" name="disableCameraControl" id="disableCameraControl" onchange="toggleUIProperty(this)" checked>
-                    <label class="form-check-label" for="disableCameraControl">
+                    <input class="form-check-input" type="checkbox" name="cameraControl" id="cameraControl" onchange="toggleUIProperty(this)" checked>
+                    <label class="form-check-label" for="cameraControl">
                       Camera button
                     </label>
                   </div>
 
                   <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" name="disableMicrophoneControl" id="disableMicrophoneControl" onchange="toggleUIProperty(this)" checked>
-                    <label class="form-check-label" for="disableMicrophoneControl">
+                    <input class="form-check-input" type="checkbox" name="microphoneControl" id="microphoneControl" onchange="toggleUIProperty(this)" checked>
+                    <label class="form-check-label" for="microphoneControl">
                       Microphone button
                     </label>
                   </div>
 
                   <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" name="disableLeaveButton" id="disableLeaveButton" onchange="toggleUIProperty(this)" checked>
-                    <label class="form-check-label" for="disableLeaveButton">
+                    <input class="form-check-input" type="checkbox" name="leaveButton" id="leaveButton" onchange="toggleUIProperty(this)" checked>
+                    <label class="form-check-label" for="leaveButton">
                       Leave button
                     </label>
                   </div>
 
                   <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" name="disableTimer" id="disableTimer" onchange="toggleUIProperty(this)" checked>
-                    <label class="form-check-label" for="disableTimer">
+                    <input class="form-check-input" type="checkbox" name="timer" id="timer" onchange="toggleUIProperty(this)" checked>
+                    <label class="form-check-label" for="timer">
                       Timer
                     </label>
                   </div>
 
                   <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" name="disableQualityIndicator" id="disableQualityIndicator" onchange="toggleUIProperty(this)" checked>
-                    <label class="form-check-label" for="disableQualityIndicator">
+                    <input class="form-check-input" type="checkbox" name="qualityIndicator" id="qualityIndicator" onchange="toggleUIProperty(this)" checked>
+                    <label class="form-check-label" for="qualityIndicator">
                       Signal quality indicator
                     </label>
                   </div>
 
                   <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" name="disableInviteButton" id="disableInviteButton" onchange="toggleUIProperty(this)" checked>
-                    <label class="form-check-label" for="disableInviteButton">
+                    <input class="form-check-input" type="checkbox" name="inviteButton" id="inviteButton" onchange="toggleUIProperty(this)" checked>
+                    <label class="form-check-label" for="inviteButton">
                       Invite button
                     </label>
                   </div>
 
                   <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" name="disableRecordingControl" id="disableRecordingControl" onchange="toggleUIProperty(this)" checked>
-                    <label class="form-check-label" for="disableRecordingControl">
+                    <input class="form-check-input" type="checkbox" name="recordingControl" id="recordingControl" onchange="toggleUIProperty(this)" checked>
+                    <label class="form-check-label" for="recordingControl">
                       Recording button
                     </label>
                   </div>
 
                   <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" name="disableStreamingControl" id="disableStreamingControl" onchange="toggleUIProperty(this)" checked>
-                    <label class="form-check-label" for="disableStreamingControl">
+                    <input class="form-check-input" type="checkbox" name="streamingControl" id="streamingControl" onchange="toggleUIProperty(this)" checked>
+                    <label class="form-check-label" for="streamingControl">
                       Streaming button
                     </label>
                   </div>
 
                   <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" name="disableDisplayModeButton" id="disableDisplayModeButton" onchange="toggleUIProperty(this)" checked>
-                    <label class="form-check-label" for="disableDisplayModeButton">
+                    <input class="form-check-input" type="checkbox" name="displayModeButton" id="displayModeButton" onchange="toggleUIProperty(this)" checked>
+                    <label class="form-check-label" for="displayModeButton">
                       Display mode button
                     </label>
                   </div>
 
                   <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" name="disableConfigButton" id="disableConfigButton" onchange="toggleUIProperty(this)" checked>
-                    <label class="form-check-label" for="disableConfigButton">
+                    <input class="form-check-input" type="checkbox" name="settingsButton" id="settingsButton" onchange="toggleUIProperty(this)" checked>
+                    <label class="form-check-label" for="settingsButton">
                       Settings button
                     </label>
                   </div>
@@ -593,30 +593,37 @@
 
                 <div class="col-sm-6">
                   <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" name="disableLeftBar" id="disableLeftBar" onchange="toggleLeftbar(this)" checked>
-                    <label class="form-check-label" for="disableLeftBar">
+                    <input class="form-check-input" type="checkbox" name="sidebar" id="sidebar" onchange="toggleSidebar(this)" checked>
+                    <label class="form-check-label" for="sidebar">
                       <b>Left menu bar</b>
                     </label>
                   </div>
 
                   <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" name="disableParticipantsListButton" id="disableParticipantsListButton" onchange="toggleUIProperty(this)" checked>
-                    <label class="form-check-label" for="disableParticipantsListButton">
+                    <input class="form-check-input" type="checkbox" name="participantsButton" id="participantsButton" onchange="toggleUIProperty(this)" checked>
+                    <label class="form-check-label" for="participantsButton">
                       Participants button
                     </label>
                   </div>
 
                   <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" name="disableChatbutton" id="disableChatbutton" onchange="toggleUIProperty(this)" checked>
-                    <label class="form-check-label" for="disableChatbutton">
+                    <input class="form-check-input" type="checkbox" name="chatButton" id="chatButton" onchange="toggleUIProperty(this)" checked>
+                    <label class="form-check-label" for="chatButton">
                       Chat button
                     </label>
                   </div>
 
                   <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" name="disableSharingCenterButton" id="disableSharingCenterButton" onchange="toggleUIProperty(this)" checked>
-                    <label class="form-check-label" for="disableSharingCenterButton">
+                    <input class="form-check-input" type="checkbox" name="sharingButton" id="sharingButton" onchange="toggleUIProperty(this)" checked>
+                    <label class="form-check-label" for="sharingButton">
                       Sharing button
+                    </label>
+                  </div>
+
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="sharedFilesButton" id="sharedFilesButton" onchange="toggleUIProperty(this)" checked>
+                    <label class="form-check-label" for="sharedFilesButton">
+                      Shared files button
                     </label>
                   </div>
                 </div>
